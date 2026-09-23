@@ -45,9 +45,9 @@ use pnpm_catalogs_config::get_catalogs_from_workspace_manifest;
 use pnpm_catalogs_types::Catalogs;
 use pnpm_config::{Config, NodeLinker, PNPM_VERSION};
 use pnpm_executor::{
-    DEV_PREINSTALL_ALREADY_RAN_ENV, PROJECT_LIFECYCLE_STAGES, PROJECT_POST_UNINSTALL_STAGES,
-    PROJECT_PRE_UNINSTALL_STAGES, ROOT_PREINSTALL_ALREADY_RAN_ENV, RunPostinstallHooks,
-    run_project_lifecycle_stages,
+    DEV_PREINSTALL_ALREADY_RAN_ENV, PROJECT_INSTALL_STAGES, PROJECT_LIFECYCLE_STAGES,
+    PROJECT_POST_UNINSTALL_STAGES, PROJECT_PRE_UNINSTALL_STAGES, ROOT_PREINSTALL_ALREADY_RAN_ENV,
+    RunPostinstallHooks, run_project_lifecycle_stages,
 };
 use pnpm_lockfile::{
     LazyLockfile, Lockfile, LockfileEntries, MaybeLazyLockfile, PnpmfileChecksumCheck,
@@ -301,9 +301,11 @@ pub enum PrecomputedWorkspaceCycles<'a> {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProjectMutation {
     /// pnpm's workspace-wide `mutation: 'install'`: `pacquet install`,
-    /// `dedupe`, `prune`, `deploy`. Every project the run materializes is
+    /// `dedupe`, `prune`. Every project the run materializes is
     /// installed in full and runs its own scripts.
     InstallWorkspace,
+    /// `pacquet deploy`. Deploys the project without running `prepare` scripts.
+    Deploy,
     /// pnpm's `mutation: 'install'` narrowed to the projects the command
     /// was pointed at: a selector-less `pacquet update`, which installs
     /// those projects in full but leaves the rest of the workspace alone.
@@ -329,7 +331,12 @@ impl ProjectMutation {
     /// `mutation: 'install'`) rather than a partial one.
     #[must_use]
     pub fn is_full_install(self) -> bool {
-        matches!(self, ProjectMutation::InstallWorkspace | ProjectMutation::InstallSelected)
+        matches!(
+            self,
+            ProjectMutation::InstallWorkspace
+                | ProjectMutation::InstallSelected
+                | ProjectMutation::Deploy,
+        )
     }
 
     /// Whether the run may absorb its manifest drift by rewriting the

@@ -1,8 +1,8 @@
 use super::{
     super::{
-        Config, InstallError, NodeLinker, PROJECT_LIFECYCLE_STAGES, PROJECT_POST_UNINSTALL_STAGES,
-        PROJECT_PRE_UNINSTALL_STAGES, PackageManifest, Path, PathBuf, ProjectMutation, Reporter,
-        project_requires_lifecycle_scripts,
+        Config, InstallError, NodeLinker, PROJECT_INSTALL_STAGES, PROJECT_LIFECYCLE_STAGES,
+        PROJECT_POST_UNINSTALL_STAGES, PROJECT_PRE_UNINSTALL_STAGES, PackageManifest, Path,
+        PathBuf, ProjectMutation, Reporter, project_requires_lifecycle_scripts,
     },
     ProjectScriptRunner,
 };
@@ -13,6 +13,7 @@ pub(in crate::install) fn project_script_stages(
 ) -> &'static [&'static str] {
     match mutation {
         ProjectMutation::UninstallSome => &PROJECT_POST_UNINSTALL_STAGES,
+        ProjectMutation::Deploy => &PROJECT_INSTALL_STAGES,
         ProjectMutation::InstallWorkspace
         | ProjectMutation::InstallSelected
         | ProjectMutation::InstallSome
