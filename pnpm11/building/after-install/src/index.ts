@@ -233,7 +233,7 @@ export async function buildProjects (
     importers: Object.values(ctx.projects),
     opts: scriptsOpts,
     projectDependencies: opts.projectDependencies,
-    stages: (opts.deploy || ctx.include?.devDependencies === false)
+    stages: opts.deploy
       ? PROJECT_INSTALL_STAGES
       : ['preinstall', 'install', 'postinstall', 'prepublish', 'prepare'],
   })
